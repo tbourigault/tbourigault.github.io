@@ -1,0 +1,85 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Video HTML5 Safari 15.x bug</title>
+</head>
+
+<body>
+<video
+        autoplay
+        controls
+        preload="auto"
+        width="640"
+        height="268"
+        poster="https://vjs.zencdn.net/v/oceans.png"
+>
+    <source src="https://vjs.zencdn.net/v/oceans.mp4" type="video/mp4">
+    <source src="https://vjs.zencdn.net/v/oceans.webm" type="video/webm">
+</video>
+</body>
+
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+<h1>scroll...</h1>
+</html>
