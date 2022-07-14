@@ -12,9 +12,9 @@ import {
 const consoleBox = document.getElementById('consoleBox');
 
 const uiConsole = {
-  log: (a, b = '') => {
-    console.log(`> ${a}`, b);
-    consoleBox.append(`\n > ${a}`);
+  log: (...data) => {
+    console.log(...data);
+    consoleBox.append(`\n > ${data[0]}`);
   },
 };
 
@@ -31,7 +31,7 @@ const auth = getAuth(firebaseApp);
 
 onAuthStateChanged(auth, user => {
   if (user !== null) {
-    uiConsole.log(`user logged in: ${user.displayName}`);
+    uiConsole.log(`user logged in: ${user.displayName}`, user);
   } else {
     uiConsole.log(`No user: ${user}`);
   }
