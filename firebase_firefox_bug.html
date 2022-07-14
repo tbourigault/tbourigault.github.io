@@ -67,6 +67,8 @@
     .then(result => {
       if (result && result.user) {
         uiConsole.log(`getRedirectResult success ${result.user.displayName}`);
+      } else {
+        uiConsole.log(`getRedirectResult no user`, result);
       }
     })
     .catch(error => {
