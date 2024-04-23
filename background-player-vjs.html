@@ -1,0 +1,50 @@
+
+<!--
+  Copyright 2014 Google Inc.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<html>
+<head>
+    <title>Video.js Lock Screen Test</title>
+    <link rel="stylesheet" href="https://googleads.github.io/videojs-ima/examples/style.css" />
+    <link rel="stylesheet" href="https://googleads.github.io/videojs-ima/node_modules/video.js/dist/video-js.min.css">
+    <link rel="stylesheet" href="https://googleads.github.io/videojs-ima/node_modules/videojs-contrib-ads/dist/videojs.ads.css" />
+    <link rel="stylesheet" href="https://googleads.github.io/videojs-ima/dist/videojs.ima.css" />
+</head>
+
+<body>
+<audio id="content_video" class="video-js vjs-default-skin"
+       poster = "https://googleads.github.io/videojs-ima/examples/posters/bbb_poster.jpg" controls preload="auto" width="640"
+       height="360">
+    <source src="https://traffic.omny.fm/d/clips/71f91b22-0f54-48f2-9bd7-aa5c001f5faa/e7ed4311-8ab4-44dd-a886-ac090131704a/37b9d5c9-d8be-4ce2-9ea8-b150015fb71e/audio.mp3" type="audio/mpeg">
+</audio>
+<script src="//imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
+<script src="https://googleads.github.io/videojs-ima/node_modules/video.js/dist/video.min.js"></script>
+<script src="https://googleads.github.io/videojs-ima/node_modules/videojs-contrib-ads/dist/videojs.ads.min.js"></script>
+<script src="https://googleads.github.io/videojs-ima/dist/videojs.ima.js"></script>
+<script src="https://googleads.github.io/videojs-ima/examples/simple/ads.js"></script>
+
+    <script>
+        var wakeLock = navigator.wakeLock || navigator.webkitWakeLock || navigator.mozWakeLock;
+        wakeLock.request().then(function(wakeLock) {
+          wakeLock.onrelease = function() {
+            // The screen has been turned off, so pause the audio
+            // audio.pause();
+          };
+        });
+    </script>
+  
+</body>
+</html>
