@@ -4,9 +4,20 @@
     <title>Background Audio Player</title>
 </head>
 <body>
+    <h1>V1</h1>
     <audio controls autoplay loop>
         <source src="https://traffic.omny.fm/d/clips/71f91b22-0f54-48f2-9bd7-aa5c001f5faa/e7ed4311-8ab4-44dd-a886-ac090131704a/37b9d5c9-d8be-4ce2-9ea8-b150015fb71e/audio.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
+
+    <script>
+        var wakeLock = navigator.wakeLock || navigator.webkitWakeLock || navigator.mozWakeLock;
+        wakeLock.request().then(function(wakeLock) {
+          wakeLock.onrelease = function() {
+            // The screen has been turned off, so pause the audio
+            // audio.pause();
+          };
+        });
+    </script>
 </body>
 </html>
