@@ -1,3 +1,5 @@
+# tbourigault.github.io
+
 # This repo is to expose some bugs
 
 ## 1 - IMA SDK Plugin for Videojs
