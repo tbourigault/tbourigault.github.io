@@ -4,27 +4,107 @@
     <meta charset="UTF-8">
     <title>Demo images</title>
     <style>
+        body {
+            font-family: sans-serif;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .card {
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 6px;
+        }
+        .card h2 {
+            font-size: 0.85rem;
+            margin: 0 0 4px;
+        }
+        .card code {
+            font-size: 0.75rem;
+            color: #555;
+            display: block;
+            margin-bottom: 6px;
+        }
         img {
             height: 200px;
+            width: 200px;
+            object-fit: cover;
+            display: block;
         }
+
+        /* image-rendering variants */
+        .render-auto          { image-rendering: auto; }
+        .render-smooth        { image-rendering: smooth; }
+        .render-high-quality  { image-rendering: high-quality; }
+        .render-crisp-edges   { image-rendering: crisp-edges; }
+        .render-pixelated     { image-rendering: pixelated; }
     </style>
 </head>
 <body>
-<div>
-    <h1>image original</h1>
-    <img src="https://mobile-img.lpcdn.ca/static/podcast/sortie-de-zone--2026-05-04.jpg">
+<h1>image-rendering comparison (original → 200×200px)</h1>
+<p>The source image is large; each card shows a different <code>image-rendering</code> value.</p>
+<div class="grid">
+
+    <div class="card">
+        <h2>auto <em>(browser default)</em></h2>
+        <code>image-rendering: auto</code>
+        <img class="render-auto"
+             src="https://mobile-img.lpcdn.ca/static/podcast/sortie-de-zone--2026-05-04.jpg"
+             alt="auto">
+    </div>
+
+    <div class="card">
+        <h2>smooth</h2>
+        <code>image-rendering: smooth</code>
+        <img class="render-smooth"
+             src="https://mobile-img.lpcdn.ca/static/podcast/sortie-de-zone--2026-05-04.jpg"
+             alt="smooth">
+    </div>
+
+    <div class="card">
+        <h2>high-quality</h2>
+        <code>image-rendering: high-quality</code>
+        <img class="render-high-quality"
+             src="https://mobile-img.lpcdn.ca/static/podcast/sortie-de-zone--2026-05-04.jpg"
+             alt="high-quality">
+    </div>
+
+    <div class="card">
+        <h2>crisp-edges</h2>
+        <code>image-rendering: crisp-edges</code>
+        <img class="render-crisp-edges"
+             src="https://mobile-img.lpcdn.ca/static/podcast/sortie-de-zone--2026-05-04.jpg"
+             alt="crisp-edges">
+    </div>
+
+    <div class="card">
+        <h2>pixelated</h2>
+        <code>image-rendering: pixelated</code>
+        <img class="render-pixelated"
+             src="https://mobile-img.lpcdn.ca/static/podcast/sortie-de-zone--2026-05-04.jpg"
+             alt="pixelated">
+    </div>
+
 </div>
-<div>
-    <h1>image 200 1x</h1>
-    <img src="./sortie-de-zone--200-1x.jpg">
+
+<hr>
+<h1>Local resized variants</h1>
+<div class="grid">
+    <div class="card">
+        <h2>200 1x</h2>
+        <img src="./sortie-de-zone--200-1x.jpg" alt="200 1x">
+    </div>
+    <div class="card">
+        <h2>200 2x</h2>
+        <img src="./sortie-de-zone--200-2x.jpg" alt="200 2x">
+    </div>
+    <div class="card">
+        <h2>200 3x</h2>
+        <img src="./sortie-de-zone--200-3x.jpg" alt="200 3x">
+    </div>
 </div>
-<div>
-    <h1>image 200 2x</h1>
-    <img src="./sortie-de-zone--200-2x.jpg">
-</div>
-<div>
-    <h1>image 200 3x</h1>
-    <img src="./sortie-de-zone--200-3x.jpg">
-</div>
+
 </body>
 </html>
