@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Style Vertical Ad Carousel</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/video.js/7.21.5/video-js.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/6.9.0/videojs.ads.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/1.11.0/videojs.ima.css" />
+
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #000;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        /* TikTok Style Vertical Scroll Container */
+        .carousel-container {
+            height: 100vh;
+            width: 100%;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none; /* Hide scrollbar for Firefox */
+        }
+        .carousel-container::-webkit-scrollbar {
+            display: none; /* Hide scrollbar for Chrome/Safari */
+        }
+
+        /* Fullscreen Slides */
+        .slide {
+            height: 100vh;
+            width: 100%;
+            scroll-snap-align: start;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Video Elements forced to 9:16 aspect ratio feel */
+        .video-js {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* Overlay labels for demo visibility */
+        .slide-label {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 15px;
+            border-radius: 20px;
+            z-index: 10;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="carousel-container" id="carousel">
+    <div class="slide" data-index="0">
+        <div class="slide-label">Slide 1: Content</div>
+        <video id="player_0" class="video-js vjs-default-skin" loop muted playsinline>
+            <source src="https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8" type="application/x-mpegURL">
+        </video>
+    </div>
+
+    <div class="slide" data-index="1">
+        <div class="slide-label">Slide 2: Content</div>
+        <video id="player_1" class="video-js vjs-default-skin" loop muted playsinline>
+            <source src="https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8" type="application/x-mpegURL">
+        </video>
+    </div>
+
+    <div class="slide" data-index="2">
+        <div class="slide-label" style="background: #e50914;">Slide 3: [Google IMA AD ONLY]</div>
+        <video id="player_2" class="video-js vjs-default-skin" playsinline>
+            <source src="https://vjs.zencdn.net/v/oceans.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div class="slide" data-index="3">
+        <div class="slide-label">Slide 4: Content</div>
+        <video id="player_3" class="video-js vjs-default-skin" loop muted playsinline>
+            <source src="https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8" type="application/x-mpegURL">
+        </video>
+    </div>
+
+    <div class="slide" data-index="4">
+        <div class="slide-label">Slide 5: Content</div>
+        <video id="player_4" class="video-js vjs-default-skin" loop muted playsinline>
+            <source src="https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8" type="application/x-mpegURL">
+        </video>
+    </div>
+</div>
+
+<script src="//imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/7.21.5/video.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-ads/6.9.0/videojs.ads.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-ima/1.11.0/videojs.ima.min.js"></script>
+
+<script>
+    const carousel = document.getElementById('carousel');
+    const players = [];
+    let activeIndex = 0;
+    let imaInitialized = false;
+
+    // 1. Initialize all 5 VideoJS Instances
+    for (let i = 0; i < 5; i++) {
+        players[i] = videojs(`player_${i}`, {
+            controls: i === 2 ? false : true, // Hide core controls on the Ad slide
+            autoplay: false,
+            preload: 'auto'
+        });
+    }
+
+    // 2. Configure Google IMA Setup specifically on Player #3 (Index 2)
+    const adPlayer = players[2];
+    const imaOptions = {
+        id: 'player_2',
+        // Using a standard clean single-inline VAST linear ad tag sample
+        adTagUrl: 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator='
+    };
+
+    adPlayer.ima(imaOptions);
+
+    // 3. AUTO-SWIPE ENGINE: Listen for the ad closure to force slide shift
+    adPlayer.on('contentresumerequested', function() {
+        console.log("Ad Finished! Triggering auto-swipe to Slide 4.");
+
+        // Programmatically scroll the vertical snap wrapper down to slide index 3 (Slide 4)
+        carousel.scrollTo({
+            top: window.innerHeight * 3,
+            behavior: 'smooth'
+        });
+    });
+
+    // 4. Initialize IMA SDK Containers securely upon user interaction environment
+    const initAdContainer = function() {
+        if (!imaInitialized) {
+            adPlayer.ima.initializeAdDisplayContainer();
+            imaInitialized = true;
+            console.log("IMA Ad Container Initialized via User Gesture.");
+            carousel.removeEventListener('touchstart', initAdContainer);
+            carousel.removeEventListener('click', initAdContainer);
+        }
+    };
+    carousel.addEventListener('click', initAdContainer);
+    carousel.addEventListener('touchstart', initAdContainer);
+
+    // 5. Intersection Observer to mimic TikTok playback optimization logic
+    const observerOptions = {
+        root: carousel,
+        target: null,
+        threshold: 0.6 // Execute transition when slide takes up 60% of viewport
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            const index = parseInt(entry.target.getAttribute('data-index'));
+
+            if (entry.isIntersecting) {
+                activeIndex = index;
+                console.log(`Current active viewport slide: ${activeIndex + 1}`);
+
+                // Play current slide's player
+                if (activeIndex === 2) {
+                    // Trigger the IMA plugin ad cycle directly on entry
+                    players[activeIndex].play();
+                } else {
+                    // Standard loop content
+                    players[activeIndex].play().catch(err => console.log("Autoplay blocked waiting for click"));
+                }
+            } else {
+                // Pause players sliding out of vision to optimize CPU resources
+                players[index].pause();
+                if (index === 2) {
+                    // If user manually swipes past the ad before it finishes, stop the manager
+                    if(players[2].ima && players[2].ima.getAdsManager()) {
+                        players[2].ima.getAdsManager().stop();
+                    }
+                }
+            }
+        });
+    }, observerOptions);
+
+    // Attach observer elements to all slide blocks
+    document.querySelectorAll('.slide').forEach(slide => observer.observe(slide));
+</script>
+
+</body>
+</html>

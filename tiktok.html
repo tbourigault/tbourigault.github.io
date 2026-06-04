@@ -1,0 +1,479 @@
+<!DOCTYPE html >
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>TikTok-style Carousel Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video-js.min.css">
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #111;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* --- Open button --- */
+        #open-carousel-btn {
+            padding: 16px 32px;
+            font-size: 18px;
+            background: #fe2c55;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        #open-carousel-btn:hover {
+            background: #e0193f;
+        }
+
+        /* --- Fullscreen overlay --- */
+        #carousel-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        #carousel-overlay.open {
+            display: block;
+        }
+
+        /* --- Close button --- */
+        #close-carousel-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 100;
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- Swipe track: vertical strip of 5 slots --- */
+        #carousel-track {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* --- Individual slide --- */
+        .carousel-slide {
+            flex: 0 0 100vh;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Slide index badge (dev helper) */
+        .slide-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            color: #888;
+            z-index: 2;
+        }
+
+        /* --- Video.js player fills the slide --- */
+        .carousel-slide .video-js {
+            position: absolute;
+            inset: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .carousel-slide .vjs-tech {
+            object-fit: cover;
+        }
+        .carousel-slide .vjs-big-play-button {
+            display: none; /* Auto-managed via unified pipeline */
+        }
+
+        /* --- TikTok Style Ad UI Elements --- */
+        #custom-ad-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            z-index: 30;
+            pointer-events: none;
+            flex-direction: column;
+            justify-content: flex-end;
+            box-sizing: border-box;
+            padding: 32px 24px 64px 24px;
+            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 30%, transparent 60%);
+        }
+
+        #custom-ad-cta {
+            align-self: center;
+            background: #fe2c55;
+            color: #fff;
+            padding: 14px 48px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 15px;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            box-shadow: 0 6px 16px rgba(254, 44, 85, 0.4);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            margin-top: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+
+<button id="open-carousel-btn">▶ Watch Stories</button>
+
+<div id="carousel-overlay">
+    <button id="close-carousel-btn">✕</button>
+
+    <div id="carousel-track">
+        <div class="carousel-slide" data-slot="0" data-type="video">
+            <span class="slide-badge">Slot 0 · Video</span>
+            <video id="vjs-slot-0" class="video-js vjs-default-skin" preload="auto" playsinline
+                   poster="https://mcdn.adspeed.com/mp4/BigBuckBunny.png">
+                <source src="https://mcdn.adspeed.com/mp4/big_buck_bunny.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="carousel-slide" data-slot="1" data-type="video">
+            <span class="slide-badge">Slot 1 · Video</span>
+            <video id="vjs-slot-1" class="video-js vjs-default-skin" preload="auto" playsinline
+                   poster="https://mcdn.adspeed.com/mp4/BigBuckBunny.png">
+                <source src="https://mcdn.adspeed.com/mp4/big_buck_bunny.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="carousel-slide" data-slot="2" data-type="ad">
+            <span class="slide-badge">Slot 2 · Ad</span>
+
+            <div id="ad-container" style="position:absolute; inset:0; background:#000; z-index:10;">
+                <video id="ima-ad-video" playsinline style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; background:#000;"></video>
+            </div>
+
+            <div id="custom-ad-overlay">
+                <div style="width: 100%; display: flex; flex-direction: column; align-items: flex-start;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #fe2c55; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; border: 1.5px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+                            AD
+                        </div>
+                        <b id="custom-ad-title" style="color: #fff; font-size: 16px; text-shadow: 1px 1px 4px rgba(0,0,0,0.8);">Sponsored</b>
+                    </div>
+                    <p id="custom-ad-desc" style="color: #eee; font-size: 14px; margin: 0; max-width: 85%; line-height: 1.4; text-shadow: 1px 1px 4px rgba(0,0,0,0.9); display: none;"></p>
+                </div>
+
+                <div id="custom-ad-cta">Learn More</div>
+            </div>
+        </div>
+        <div class="carousel-slide" data-slot="3" data-type="video">
+            <span class="slide-badge">Slot 3 · Video</span>
+            <video id="vjs-slot-3" class="video-js vjs-default-skin" preload="auto" playsinline
+                   poster="https://mcdn.adspeed.com/mp4/BigBuckBunny.png">
+                <source src="https://mcdn.adspeed.com/mp4/big_buck_bunny.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="carousel-slide" data-slot="4" data-type="video">
+            <span class="slide-badge">Slot 4 · Video</span>
+            <video id="vjs-slot-4" class="video-js vjs-default-skin" preload="auto" playsinline
+                   poster="https://mcdn.adspeed.com/mp4/BigBuckBunny.png">
+                <source src="https://mcdn.adspeed.com/mp4/big_buck_bunny.mp4" type="video/mp4">
+            </video>
+        </div>
+    </div>
+</div>
+
+<script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video.min.js"></script>
+<script>
+    const AD_SLOT_INDEX = 2;
+    const AD_TAG_URL = 'https://g.adspeed.net/ad.php?do=vast&aid=115727&cb=1322853066';
+
+    let adDisplayContainer = null;
+    let adsLoader = null;
+    let adsManager = null;
+    let isMobile = /iPad|iPhone|iPod|Android/i.test(navigator.userAgent);
+
+    // Tell IMA to bypass default iOS inline system audio limits
+    if (isMobile && window.google && google.ima) {
+        google.ima.settings.setDisableCustomPlaybackForIOS10Plus(true);
+    }
+
+    function stopAd() {
+        if (adsManager) {
+            try { adsManager.destroy(); } catch(e){}
+            adsManager = null;
+        }
+        document.getElementById('custom-ad-overlay').style.display = 'none';
+        document.getElementById('ima-ad-video').style.display = 'none';
+    }
+
+    function onAdError(e) {
+        console.warn('Ad stream failed or blocked, dropping out:', e);
+        stopAd();
+        if (currentIndex === AD_SLOT_INDEX) goTo(AD_SLOT_INDEX + 1);
+    }
+
+    function onAdsManagerLoaded(e) {
+        // Tie ad playback logic container structure to target layer bounds
+        adsManager = e.getAdsManager(document.getElementById('ad-container'));
+
+        adsManager.addEventListener(google.ima.AdEvent.Type.STARTED, (adEvent) => {
+            const ad = adEvent.getAd();
+
+            document.getElementById('ima-ad-video').style.display = 'block';
+
+            // Enforce maximum volume state configuration properties
+            if(adsManager) {
+                try {
+                    adsManager.setVolume(1);
+                } catch(err){}
+            }
+
+            const rawTitle = ad.getTitle();
+            document.getElementById('custom-ad-title').innerText = rawTitle ? rawTitle.substring(0, 24) : 'Sponsored';
+
+            const rawDesc = ad.getDescription();
+            const descEl = document.getElementById('custom-ad-desc');
+            if (rawDesc && rawDesc.trim() !== "") {
+                descEl.innerText = rawDesc;
+                descEl.style.display = 'block';
+            } else {
+                descEl.style.display = 'none';
+            }
+
+            document.getElementById('custom-ad-overlay').style.display = 'flex';
+        });
+
+        adsManager.addEventListener(google.ima.AdEvent.Type.VOLUME_CHANGED, () => {
+            // Keep volume maxed out if SDK tries to adaptively step down sound levels
+            if (adsManager) {
+                try { if(adsManager.getVolume() < 1) adsManager.setVolume(1); } catch(e){}
+            }
+        });
+
+        adsManager.addEventListener(google.ima.AdEvent.Type.ALL_ADS_COMPLETED, () => {
+            stopAd();
+            if (currentIndex === AD_SLOT_INDEX) goTo(AD_SLOT_INDEX + 1);
+        });
+
+        adsManager.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, onAdError);
+
+        try {
+            adsManager.init(window.innerWidth, window.innerHeight, google.ima.ViewMode.FULLSCREEN);
+            adsManager.start();
+        } catch (err) {
+            onAdError(err);
+        }
+    }
+
+    function setupAdContext() {
+        if (!adDisplayContainer) {
+            const containerElement = document.getElementById('ad-container');
+            const videoElement = document.getElementById('ima-ad-video');
+
+            adDisplayContainer = new google.ima.AdDisplayContainer(containerElement, videoElement);
+            adsLoader = new google.ima.AdsLoader(adDisplayContainer);
+            adsLoader.addEventListener(google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED, onAdsManagerLoaded);
+            adsLoader.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, onAdError);
+        }
+    }
+
+    function playAd() {
+        if (adsManager) { try { adsManager.destroy(); } catch(e){} adsManager = null; }
+
+        setupAdContext();
+
+        document.getElementById('ima-ad-video').style.display = 'block';
+        adDisplayContainer.initialize();
+
+        const req = new google.ima.AdsRequest();
+        req.adTagUrl = AD_TAG_URL;
+
+        // CRITICAL FOR SOUND: Tell ad manager explicitly that we demand unmuted audio stream playback
+        req.setAdWillAutoPlay(true);
+
+        req.linearAdSlotWidth  = window.innerWidth;
+        req.linearAdSlotHeight = window.innerHeight;
+        adsLoader.requestAds(req);
+    }
+
+    // --- Init Video.js players on the 4 video slots ---
+    const VIDEO_SLOT_IDS = ['vjs-slot-0', 'vjs-slot-1', 'vjs-slot-3', 'vjs-slot-4'];
+    const players = {};
+
+    VIDEO_SLOT_IDS.forEach((id) => {
+        const p = videojs(id, {
+            controls: true,
+            autoplay: false,
+            muted: false, // Core targets initialization status must be sound active
+            preload: 'auto',
+            fluid: false,
+            loadingSpinner: false
+        });
+        players[id] = p;
+
+        p.on('ended', () => {
+            const slotNum = parseInt(id.replace('vjs-slot-', ''), 10);
+            if (slotNum === currentIndex) {
+                goTo(currentIndex + 1);
+            }
+        });
+    });
+
+    function pauseAllExcept(activeSlotIndex) {
+        VIDEO_SLOT_IDS.forEach((id) => {
+            const slotNum = parseInt(id.replace('vjs-slot-', ''), 10);
+            if (slotNum !== activeSlotIndex && players[id]) {
+                players[id].pause();
+            }
+        });
+    }
+
+    const overlay  = document.getElementById('carousel-overlay');
+    const openBtn  = document.getElementById('open-carousel-btn');
+    const closeBtn = document.getElementById('close-carousel-btn');
+    const track    = document.getElementById('carousel-track');
+    const TOTAL_SLOTS = 5;
+
+    let currentIndex = 0;
+
+    function goTo(index) {
+        const leaving = currentIndex;
+        currentIndex = Math.max(0, Math.min(index, TOTAL_SLOTS - 1));
+        track.style.transform = `translateY(${-currentIndex * 100}vh)`;
+
+        if (leaving === AD_SLOT_INDEX && currentIndex !== AD_SLOT_INDEX) stopAd();
+
+        pauseAllExcept(currentIndex);
+
+        if (currentIndex === AD_SLOT_INDEX) {
+            playAd();
+        } else {
+            const activeId = `vjs-slot-${currentIndex}`;
+            const targetPlayer = players[activeId];
+            if (targetPlayer) {
+                targetPlayer.currentTime(0);
+                targetPlayer.muted(false); // Explicit enforcement loop
+                targetPlayer.volume(1);
+
+                const playPromise = targetPlayer.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(err => {
+                        console.warn("Unmuted autoplay catch trigger. Re-forcing unmuted playback:", err);
+                        targetPlayer.muted(false);
+                        targetPlayer.play();
+                    });
+                }
+            }
+        }
+    }
+
+    openBtn.addEventListener('click', () => {
+        overlay.classList.add('open');
+        setupAdContext();
+
+        if (adDisplayContainer) {
+            adDisplayContainer.initialize();
+        }
+
+        // UNIFIED UNIVERSAL PRIMING ENGINE: Unlocks audio permissions inside primary gesture container link
+        VIDEO_SLOT_IDS.forEach((id) => {
+            const nativeVid = document.getElementById(id + '_html5_api');
+            if (nativeVid) {
+                nativeVid.muted = false; // "Bless" player elements with sound active immediately
+                nativeVid.volume = 1.0;
+
+                const primePromise = nativeVid.play();
+                if (primePromise !== undefined) {
+                    primePromise.then(() => {
+                        nativeVid.pause();
+                        nativeVid.currentTime = 0;
+                    }).catch(e => console.log("Device channel engine priming log bypass"));
+                }
+            }
+        });
+
+        const nativeAdVid = document.getElementById('ima-ad-video');
+        if (nativeAdVid) {
+            nativeAdVid.muted = false;
+            nativeAdVid.volume = 1.0;
+            nativeAdVid.play().then(() => {
+                nativeAdVid.pause();
+                nativeAdVid.currentTime = 0;
+            }).catch(() => {});
+        }
+
+        goTo(0);
+    });
+
+    closeBtn.addEventListener('click', () => {
+        overlay.classList.remove('open');
+        stopAd();
+        pauseAllExcept(-1);
+    });
+
+    // ---- Keyboard ----
+    document.addEventListener('keydown', (e) => {
+        if (!overlay.classList.contains('open')) return;
+        if (e.key === 'ArrowDown') goTo(currentIndex + 1);
+        if (e.key === 'ArrowUp')   goTo(currentIndex - 1);
+        if (e.key === 'Escape')    overlay.classList.remove('open');
+    });
+
+    // ---- Touch swipe ----
+    let touchStartY = null;
+    const SWIPE_THRESHOLD = 50;
+
+    overlay.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    overlay.addEventListener('touchend', (e) => {
+        if (touchStartY === null) return;
+        const delta = touchStartY - e.changedTouches[0].clientY;
+        if (Math.abs(delta) > SWIPE_THRESHOLD) {
+            goTo(currentIndex + (delta > 0 ? 1 : -1));
+        }
+        touchStartY = null;
+    }, { passive: true });
+
+    // ---- Mouse drag ----
+    let mouseStartY = null;
+
+    overlay.addEventListener('mousedown', (e) => { mouseStartY = e.clientY; });
+    overlay.addEventListener('mouseup', (e) => {
+        if (mouseStartY === null) return;
+        const delta = mouseStartY - e.clientY;
+        if (Math.abs(delta) > SWIPE_THRESHOLD) {
+            goTo(currentIndex + (delta > 0 ? 1 : -1));
+        }
+        mouseStartY = null;
+    });
+</script>
+
+</body>
+</html>
