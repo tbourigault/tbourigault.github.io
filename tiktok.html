@@ -125,7 +125,7 @@
             flex-direction: column;
             justify-content: flex-end;
             box-sizing: border-box;
-            padding: 32px 24px 64px 24px;
+            padding: 32px 24px 150px 24px;
             background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 30%, transparent 60%);
         }
 
@@ -145,6 +145,29 @@
             border: 1px solid rgba(255,255,255,0.1);
         }
 
+        /* --- Debug Ad Pause Toggle Button --- */
+        #debug-ad-toggle {
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000; /* Must sit completely on top of Google's overlays */
+            background: rgba(254, 44, 85, 0.9);
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            display: none;
+            text-transform: uppercase;
+        }
+        #debug-ad-toggle:hover {
+            background: #fe2c55;
+        }
+
         /* Force Google IMA Internal iframes/video components to visible full width */
         #ad-container iframe, #ad-container video {
             width: 100% !important;
@@ -158,6 +181,8 @@
 
 <div id="carousel-overlay">
     <button id="close-carousel-btn">✕</button>
+
+    <button id="debug-ad-toggle">⏸ Pause Ad</button>
 
     <div id="carousel-track">
         <div class="carousel-slide" data-slot="0" data-type="video">
@@ -222,6 +247,9 @@
     let adsLoader = null;
     let adsManager = null;
     let isMobile = /iPad|iPhone|iPod|Android/i.test(navigator.userAgent);
+    let adIsPaused = false;
+
+    const debugToggleBtn = document.getElementById('debug-ad-toggle');
 
     if (isMobile && window.google && google.ima) {
         google.ima.settings.setDisableCustomPlaybackForIOS10Plus(true);
@@ -233,6 +261,8 @@
             adsManager = null;
         }
         document.getElementById('custom-ad-overlay').style.display = 'none';
+        debugToggleBtn.style.display = 'none';
+        adIsPaused = false;
     }
 
     function onAdError(e) {
@@ -266,6 +296,11 @@
             }
 
             document.getElementById('custom-ad-overlay').style.display = 'flex';
+
+            // Show the debug button when the ad actually starts running
+            debugToggleBtn.style.display = 'block';
+            debugToggleBtn.innerText = '⏸ Pause Ad';
+            adIsPaused = false;
         });
 
         adsManager.addEventListener(google.ima.AdEvent.Type.VOLUME_CHANGED, () => {
@@ -315,6 +350,22 @@
         req.linearAdSlotHeight = window.innerHeight;
         adsLoader.requestAds(req);
     }
+
+    // --- Debug Pause Toggle Click Event ---
+    debugToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Avoid triggering carousel drag/swipes
+        if (!adsManager) return;
+
+        if (!adIsPaused) {
+            adsManager.pause();
+            debugToggleBtn.innerText = '▶ Resume Ad';
+            adIsPaused = true;
+        } else {
+            adsManager.resume();
+            debugToggleBtn.innerText = '⏸ Pause Ad';
+            adIsPaused = false;
+        }
+    });
 
     // --- Init Video.js players on the 4 video slots ---
     const VIDEO_SLOT_IDS = ['vjs-slot-0', 'vjs-slot-1', 'vjs-slot-3', 'vjs-slot-4'];
@@ -443,6 +494,8 @@
     const SWIPE_THRESHOLD = 50;
 
     overlay.addEventListener('touchstart', (e) => {
+        // Prevent swipe tracking if clicking the debug button
+        if(e.target.id === 'debug-ad-toggle') return;
         touchStartY = e.touches[0].clientY;
     }, { passive: true });
 
@@ -458,7 +511,10 @@
     // ---- Mouse drag ----
     let mouseStartY = null;
 
-    overlay.addEventListener('mousedown', (e) => { mouseStartY = e.clientY; });
+    overlay.addEventListener('mousedown', (e) => {
+        if(e.target.id === 'debug-ad-toggle') return;
+        mouseStartY = e.clientY;
+    });
     overlay.addEventListener('mouseup', (e) => {
         if (mouseStartY === null) return;
         const delta = mouseStartY - e.clientY;
