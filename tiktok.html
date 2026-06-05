@@ -112,7 +112,7 @@
             object-fit: cover;
         }
         .carousel-slide .vjs-big-play-button {
-            display: none; /* Auto-managed via unified pipeline */
+            display: none;
         }
 
         /* --- TikTok Style Ad UI Elements --- */
@@ -144,6 +144,12 @@
             margin-top: 16px;
             border: 1px solid rgba(255,255,255,0.1);
         }
+
+        /* Force Google IMA Internal iframes/video components to visible full width */
+        #ad-container iframe, #ad-container video {
+            width: 100% !important;
+            height: 100% !important;
+        }
     </style>
 </head>
 <body>
@@ -172,7 +178,7 @@
             <span class="slide-badge">Slot 2 · Ad</span>
 
             <div id="ad-container" style="position:absolute; inset:0; background:#000; z-index:10;">
-                <video id="ima-ad-video" playsinline style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; background:#000;"></video>
+                <video id="ima-ad-video" playsinline style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; background:transparent;"></video>
             </div>
 
             <div id="custom-ad-overlay">
@@ -217,7 +223,6 @@
     let adsManager = null;
     let isMobile = /iPad|iPhone|iPod|Android/i.test(navigator.userAgent);
 
-    // Tell IMA to bypass default iOS inline system audio limits
     if (isMobile && window.google && google.ima) {
         google.ima.settings.setDisableCustomPlaybackForIOS10Plus(true);
     }
@@ -228,7 +233,6 @@
             adsManager = null;
         }
         document.getElementById('custom-ad-overlay').style.display = 'none';
-        document.getElementById('ima-ad-video').style.display = 'none';
     }
 
     function onAdError(e) {
@@ -238,15 +242,11 @@
     }
 
     function onAdsManagerLoaded(e) {
-        // Tie ad playback logic container structure to target layer bounds
         adsManager = e.getAdsManager(document.getElementById('ad-container'));
 
         adsManager.addEventListener(google.ima.AdEvent.Type.STARTED, (adEvent) => {
             const ad = adEvent.getAd();
 
-            document.getElementById('ima-ad-video').style.display = 'block';
-
-            // Enforce maximum volume state configuration properties
             if(adsManager) {
                 try {
                     adsManager.setVolume(1);
@@ -269,7 +269,6 @@
         });
 
         adsManager.addEventListener(google.ima.AdEvent.Type.VOLUME_CHANGED, () => {
-            // Keep volume maxed out if SDK tries to adaptively step down sound levels
             if (adsManager) {
                 try { if(adsManager.getVolume() < 1) adsManager.setVolume(1); } catch(e){}
             }
@@ -306,14 +305,10 @@
         if (adsManager) { try { adsManager.destroy(); } catch(e){} adsManager = null; }
 
         setupAdContext();
-
-        document.getElementById('ima-ad-video').style.display = 'block';
         adDisplayContainer.initialize();
 
         const req = new google.ima.AdsRequest();
         req.adTagUrl = AD_TAG_URL;
-
-        // CRITICAL FOR SOUND: Tell ad manager explicitly that we demand unmuted audio stream playback
         req.setAdWillAutoPlay(true);
 
         req.linearAdSlotWidth  = window.innerWidth;
@@ -329,7 +324,7 @@
         const p = videojs(id, {
             controls: true,
             autoplay: false,
-            muted: false, // Core targets initialization status must be sound active
+            muted: false,
             preload: 'auto',
             fluid: false,
             loadingSpinner: false
@@ -377,13 +372,13 @@
             const targetPlayer = players[activeId];
             if (targetPlayer) {
                 targetPlayer.currentTime(0);
-                targetPlayer.muted(false); // Explicit enforcement loop
+                targetPlayer.muted(false);
                 targetPlayer.volume(1);
 
                 const playPromise = targetPlayer.play();
                 if (playPromise !== undefined) {
                     playPromise.catch(err => {
-                        console.warn("Unmuted autoplay catch trigger. Re-forcing unmuted playback:", err);
+                        console.warn("Unmuted autoplay catch strategy engaged:", err);
                         targetPlayer.muted(false);
                         targetPlayer.play();
                     });
@@ -400,11 +395,10 @@
             adDisplayContainer.initialize();
         }
 
-        // UNIFIED UNIVERSAL PRIMING ENGINE: Unlocks audio permissions inside primary gesture container link
         VIDEO_SLOT_IDS.forEach((id) => {
             const nativeVid = document.getElementById(id + '_html5_api');
             if (nativeVid) {
-                nativeVid.muted = false; // "Bless" player elements with sound active immediately
+                nativeVid.muted = false;
                 nativeVid.volume = 1.0;
 
                 const primePromise = nativeVid.play();
